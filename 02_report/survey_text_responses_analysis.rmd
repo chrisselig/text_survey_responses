@@ -1,0 +1,37 @@
+---
+title: "Survey Text Analysis"
+author: "Chris Selig"
+date: "10/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    warning = F,
+    message = F,
+    include = F
+    )
+```
+
+```{r load libraries}
+# Workhorse: data manipulation, plotting
+library(tidyverse)
+library(janitor)
+
+# Read in data
+library(readxl)
+
+# Text specific packages
+library(tidytext)
+```
+
+
+```{r load data}
+raw_data <- read_excel("../00_data/survey_text_responses.xlsx",sheet = "Survey_responses")
+```
+
+```{r source scripts}
+source("../01_scripts/01_data_processing.R")
+```
+
