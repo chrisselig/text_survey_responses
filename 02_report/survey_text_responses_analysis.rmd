@@ -39,6 +39,12 @@ keyword <- read_excel("../00_data/keywords.xlsx")
 source("../01_scripts/01_data_processing.R")
 ```
 
+```{r set theme for plots}
+# Set theme
+theme_set(theme_tufte())
+```
+
+
 ```{r unigrams data processing}
 unigram_tidy_data <- raw_data %>% 
     clean_column_names_function() %>% 
@@ -46,13 +52,27 @@ unigram_tidy_data <- raw_data %>%
     remove_stop_words_function()
 ```
 
-## Visualize Most Common Words
+## Purpose
 
-```{r set theme for plots}
-# Set theme
-theme_set(theme_tufte())
-```
+The purpose of this analysis is to analyze the four open ended questions in a survey for customer satisfaction for VHT's products.
 
+The four questions are:
+
+1. If you could change anything about the services VHT Studios offers, what would it be?
+
+
+2. What can we do better?
+
+3. What other capabilities would you be interested in VHT offering?
+
+4. Additional Comments and/or Suggestions for improvements or changes
+
+
+
+## Visualize Most Common Single Words
+
+
+The below image shows the single most frequent words that appear on each of the four open ended questions.
 ```{r unigram visual}
 unigram_tidy_data %>% 
     count(question, word) %>%
@@ -64,6 +84,11 @@ unigram_tidy_data %>%
         question = as.factor(question),
         word = reorder_within(word, n, question)
     ) %>% 
+    mutate(
+        question = str_replace(question, "open_",""),
+        question = str_replace_all(question, "_"," "),
+        question = str_to_title(question)
+    ) %>% 
     ggplot(aes(word,n)) +
     geom_bar(stat = 'identity',aes(fill = n), fill = '#A2AAB0') +
     coord_flip() +
@@ -72,7 +97,8 @@ unigram_tidy_data %>%
     scale_x_reordered() +
     labs(
         x = '',
-        y = ''
+        y = '',
+        title = "Top 10 Single Words for Each Open Question"
     ) +
     theme(
         plot.title = element_text(size = 14, family = "memphis",color = '#4C586F', face = 'bold'),
