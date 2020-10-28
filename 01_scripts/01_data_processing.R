@@ -27,6 +27,27 @@ tokenize_data_function <- function(data = raw_data){
     return(tokenized_data)
 }
 
+# Tokenize data, bigrams ----
+
+ngram_data_function <- function(data = raw_data,
+                                number_of_tokens = 2){
+    
+    ngram_tokenized_data <- data %>% 
+        select(respondent_id,starts_with("open")) %>% 
+        pivot_longer(
+            cols = c(2:5),
+            names_to = "question",
+            values_to = "text"
+            
+        ) %>% 
+        filter(!is.na(text)) %>% 
+        unnest_tokens(ngram, text, token = "ngrams", n = number_of_tokens)
+        
+    
+    return(ngram_tokenized_data)    
+    
+}
+
 # Remove stop words ----
 remove_stop_words_function <- function(data = tokenized_data){
     
@@ -46,3 +67,8 @@ remove_stop_words_function <- function(data = tokenized_data){
 # 
 # data <- tokenized_data
 # remove_stop_words_function(data)
+# raw_data <- raw_data %>% 
+#     clean_column_names_function() %>% 
+#     ngram_data_function()
+# 
+# ngram_data_function()

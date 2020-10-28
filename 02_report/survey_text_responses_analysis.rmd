@@ -37,6 +37,7 @@ keyword <- read_excel("../00_data/keywords.xlsx")
 
 ```{r source scripts}
 source("../01_scripts/01_data_processing.R")
+source("../01_scripts/02_visualizations.R")
 ```
 
 ```{r set theme for plots}
@@ -58,14 +59,13 @@ The purpose of this analysis is to analyze the four open ended questions in a su
 
 The four questions are:
 
-1. If you could change anything about the services VHT Studios offers, what would it be?
+1. If you could change anything about the services VHT Studios offers, what would it be? Tagged as "Change 1 thing" in dataset.
 
+2. What can we do better? Tagged as "do better" in dataset.
 
-2. What can we do better?
+3. What other capabilities would you be interested in VHT offering? Tagged as "Other Services" in dataset.
 
-3. What other capabilities would you be interested in VHT offering?
-
-4. Additional Comments and/or Suggestions for improvements or changes
+4. Additional Comments and/or Suggestions for improvements or changes. Tagged as "Other Comments" in dataset.
 
 
 
@@ -73,40 +73,54 @@ The four questions are:
 
 
 The below image shows the single most frequent words that appear on each of the four open ended questions.
+
 ```{r unigram visual}
-unigram_tidy_data %>% 
-    count(question, word) %>%
-    group_by(question) %>%
-    arrange(desc(n)) %>%
-    top_n(10) %>% 
-    ungroup() %>% 
-    mutate(
-        question = as.factor(question),
-        word = reorder_within(word, n, question)
-    ) %>% 
-    mutate(
-        question = str_replace(question, "open_",""),
-        question = str_replace_all(question, "_"," "),
-        question = str_to_title(question)
-    ) %>% 
-    ggplot(aes(word,n)) +
-    geom_bar(stat = 'identity',aes(fill = n), fill = '#A2AAB0') +
-    coord_flip() +
-    geom_text(aes(label = n), size = 3, hjust = 1.4, color = 'black') +
-    facet_wrap(~question,scales = "free") +
-    scale_x_reordered() +
-    labs(
-        x = '',
-        y = '',
-        title = "Top 10 Single Words for Each Open Question"
-    ) +
-    theme(
-        plot.title = element_text(size = 14, family = "memphis",color = '#4C586F', face = 'bold'),
-        plot.subtitle = element_text(hjust = 0.01, size = 11,family = "ArnoProLightDisplay"),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        legend.position = "none"
+# unigram_tidy_data %>% 
+#     count(question, word) %>%
+#     group_by(question) %>%
+#     arrange(desc(n)) %>%
+#     top_n(10) %>% 
+#     ungroup() %>% 
+#     mutate(
+#         question = as.factor(question),
+#         word = reorder_within(word, n, question)
+#     ) %>% 
+#     mutate(
+#         question = str_replace(question, "open_",""),
+#         question = str_replace_all(question, "_"," "),
+#         question = str_to_title(question)
+#     ) %>% 
+#     ggplot(aes(word,n)) +
+#     geom_bar(stat = 'identity',aes(fill = n), fill = '#A2AAB0') +
+#     coord_flip() +
+#     geom_text(aes(label = n), size = 3, hjust = 1.4, color = 'black') +
+#     facet_wrap(~question,scales = "free") +
+#     scale_x_reordered() +
+#     labs(
+#         x = '',
+#         y = '',
+#         title = "Top 10 Single Words for Each Open Question"
+#     ) +
+#     theme(
+#         plot.title = element_text(size = 14, family = "memphis",color = '#4C586F', face = 'bold'),
+#         plot.subtitle = element_text(hjust = 0.01, size = 11,family = "ArnoProLightDisplay"),
+#         axis.text.x=element_blank(),
+#         axis.ticks.x=element_blank(),
+#         legend.position = "none"
+#     )
+
+barchart_function(
+    data = unigram_tidy_data, 
+    title = "Top 10 Single Words for Each Open Question"
     )
 ```
 
+
+## Common Bigrams - Two words that appear side by side
+
+The next section will show words that often appear together. Note, stop words are removed. Stop words are extremely common words like "and", "a", and "the" and offer no meaning for analysis purposes.
+
+```{r bigram visual}
+
+```
 
