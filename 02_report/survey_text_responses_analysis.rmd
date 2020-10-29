@@ -34,6 +34,7 @@ library(stopwords)
 # Visualization packages
 library(ggthemes)
 library(wordcloud)
+library(DT)
 ```
 
 
@@ -157,3 +158,21 @@ Bigrams are a little more interesting than unigrams because you can start to see
 
 
 ## Keyword Search
+
+In the below table, you can search for a keyword and find the responses that include that word and read the full responses.
+
+```{r}
+raw_data %>% 
+    clean_column_names_function() %>% 
+    select(respondent_id,starts_with("open")) %>% 
+    pivot_longer(
+        cols = c(2:5),
+        names_to = "question",
+        values_to = "text"
+    ) %>% 
+    filter(!is.na(text)) %>% 
+    clean_question_column_function() %>% 
+    select(-respondent_id) %>% 
+    datatable(options = list(pageLength = 10))
+    
+```

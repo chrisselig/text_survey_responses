@@ -10,6 +10,16 @@ clean_column_names_function <- function(data = raw_data){
     return(raw_data)
 }
 
+clean_question_column_function <- function(data){
+    
+    data %>% 
+        mutate(
+            question = str_replace(question, "open_",""),
+            question = str_replace_all(question, "_"," "),
+            question = str_to_title(question)
+        )
+}
+
 # Tokenize data ----
 tokenize_data_function <- function(data = raw_data){
     
