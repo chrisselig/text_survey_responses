@@ -39,7 +39,7 @@ tokenize_data_function <- function(data = raw_data){
 
 # Tokenize data, bigrams ----
 
-ngram_data_function <- function(data = raw_data){
+bigram_data_function <- function(data = raw_data){
     
     ngram_tokenized_data <- data %>% 
         select(respondent_id,starts_with("open")) %>% 
@@ -65,6 +65,7 @@ ngram_data_function <- function(data = raw_data){
     
 }
 
+
 # Remove stop words ----
 remove_stop_words_function <- function(data = tokenized_data){
     
@@ -78,7 +79,7 @@ remove_stop_words_function <- function(data = tokenized_data){
 
 
 # Test functions ----
-# data <- raw_data %>% 
+# data <- raw_data %>%
 #     clean_column_names_function()
 # 
 # tokenized_data <- tokenize_data_function(data = raw_data)

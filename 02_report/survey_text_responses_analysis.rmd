@@ -23,13 +23,16 @@ library(tufte)
 # Workhorse: data manipulation, plotting
 library(tidyverse)
 library(janitor)
+library(reshape2)
 
 # Read in data
 library(readxl)
 
 # Text specific packages
 library(tidytext)
+library(textdata)
 library(stopwords)
+library(sentimentr)
 
 # Visualization packages
 library(ggthemes)
@@ -51,6 +54,13 @@ source("../01_scripts/02_visualizations.R")
 ```{r set theme for plots}
 # Set theme
 theme_set(theme_tufte())
+```
+
+
+```{r loadFonts}
+# Load custom fonts
+windowsFonts(memphis=windowsFont("memphis"))
+windowsFonts(ArnoProLightDisplay = windowsFont("Arno Pro Light Display"))
 ```
 
 
@@ -92,6 +102,24 @@ unigram_tidy_data %>%
 The wordcloud above shows the top 100 words used by the respondents. Photographer is the most frequent word, which really isn't a big surprise, but some other interesting ones are 'service', 'time','pricing' and 'quicker'.
 
 
+## Single Word Sentiment Wordcloud
+
+Below, the top 150 words are visualized based on sentiment.
+
+
+```{r}
+unigram_tidy_data %>% 
+    inner_join(get_sentiments("bing")) %>%
+    count(word, sentiment, sort = TRUE) %>%
+    acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+    comparison.cloud(
+    colors = c("#CD5C5C", "darkgreen"),
+    title.bg.colors = NA,
+    max.words = 150
+  )
+```
+
+
 ## Visualize Most Common Single Words by Question
 
 
@@ -110,7 +138,8 @@ Some observations:
 ```{r unigram visual}
 barchart_function(
     data = unigram_tidy_data, 
-    title = "Top 10 Single Words for Each Open Question"
+    title = "Top 10 Single Words for Each Open Question",
+    subtitle = "More than 10 items appear due to ties"
     )
 ```
 
@@ -123,7 +152,7 @@ The next section will show two words that often appear together. Note, bigrams a
 ```{r bigrams data processing}
 bigram_tidy_data <- raw_data %>% 
     clean_column_names_function() %>% 
-    ngram_data_function()
+    bigram_data_function()
 ```
 
 ```{r bigram visual}
@@ -134,7 +163,7 @@ bigram_tidy_data %>%
     )
 ```
 
-Bigrams are a little more interesting than unigrams because you can start to see some context around the verbage in the questions.
+Bigrams are a little more interesting than unigrams because you can start to see some context around the verbage in the responses.
 
 1. Virtual staging appers most frequently in the "change 1 thing" and other services questions, while it is second place in the "do better" and "other comments" questions.
 
@@ -145,21 +174,42 @@ Bigrams are a little more interesting than unigrams because you can start to see
 4. "Floor plan(s)" appears twice in the "change 1 thing" question
 
 
-## Common Trigrams - Three words that appear side by side
-
-
-## Topic Modeling
-
-
-## Single Word Sentiment Wordcloud
+## Word Correlations
 
 
 ## Sentence Sentiment
 
+Lookng at the sentiment of individual words is a bit too primitive and the English language is syntactically complex and lexically rich so now I will take a look at the sentiment of full responses. 
+
+The algorithm I will use is a bit better than sentiment by word. It uses "valence shifters" that help adjust the sentiment score. For example, if you do sentiment analysis on the single word "happy", the score is positive. Obviously though, if the phrase is "not happy" it is no longer positive but a single word sentiment analysis would not pick that up. The valence shifters will help adjust "not happy" to negative or at least less positive. Also, the sentiment score that will be returned will be an aggregate of each sentence for each question and response. tTat way we only look at a single score per question and response. A score greater than 0 implies an overall positive sentiment.
+
+```{r calcSentiment}
+sentence_sentiment <- raw_data %>% 
+    clean_column_names_function() %>% 
+    select(starts_with("open")) %>% 
+        pivot_longer(
+            cols = c(1:4),
+            names_to = "question",
+            values_to = "text"
+        ) %>% 
+    filter(!is.na(text)) %>% 
+    mutate(
+        question = str_replace(question, "open_",""),
+        question = str_replace_all(question, "_"," "),
+        question = str_to_title(question)
+    ) %>% 
+    group_by(question) %>%
+    unnest_tokens(sentence, text, token = 'sentences') %>%
+    ungroup() %>%
+    get_sentences() %>%
+    sentiment_by(by = c('question', 'sentence')) %>% 
+    filter(ave_sentiment != 0.0)
+
+```
 
 ## Keyword Search
 
-In the below table, you can search for a keyword and find the responses that include that word and read the full responses.
+In the table below, you can search for a keyword and find the responses that include that word and read the full responses.
 
 ```{r}
 raw_data %>% 
@@ -176,3 +226,6 @@ raw_data %>%
     datatable(options = list(pageLength = 10))
     
 ```
+
+
+## Topic Modeling
