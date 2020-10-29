@@ -29,8 +29,7 @@ tokenize_data_function <- function(data = raw_data){
 
 # Tokenize data, bigrams ----
 
-ngram_data_function <- function(data = raw_data,
-                                number_of_tokens = 2){
+ngram_data_function <- function(data = raw_data){
     
     ngram_tokenized_data <- data %>% 
         select(respondent_id,starts_with("open")) %>% 
@@ -40,10 +39,18 @@ ngram_data_function <- function(data = raw_data,
             values_to = "text"
             
         ) %>% 
-        filter(!is.na(text)) %>% 
-        unnest_tokens(ngram, text, token = "ngrams", n = number_of_tokens)
+        unnest_tokens(word, text, token = "ngrams", n = 2) %>% 
+        separate(word, c("word1", "word2"), sep = " ") %>% 
+        filter(!word1 %in% stop_words$word) %>%
+        filter(!word2 %in% stop_words$word) %>% 
+        filter(!is.na(word1)) %>% 
+        filter(word1 != 'NA') %>% 
+        filter(word1 != 'n a') %>% 
+        filter(!is.na(word2)) %>% 
+        filter(word2 != 'NA') %>% 
+        filter(word2 != 'n a') %>% 
+        unite(word, word1, word2, sep = " ")
         
-    
     return(ngram_tokenized_data)    
     
 }
@@ -61,14 +68,16 @@ remove_stop_words_function <- function(data = tokenized_data){
 
 
 # Test functions ----
-# data <- raw_data
+# data <- raw_data %>% 
+#     clean_column_names_function()
 # 
 # tokenized_data <- tokenize_data_function(data = raw_data)
 # 
 # data <- tokenized_data
 # remove_stop_words_function(data)
-# raw_data <- raw_data %>% 
-#     clean_column_names_function() %>% 
-#     ngram_data_function()
+# raw_data <- raw_data %>%
+#     clean_column_names_function()
+# 
+# ngram_data_function()
 # 
 # ngram_data_function()

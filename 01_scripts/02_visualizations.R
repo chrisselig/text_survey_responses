@@ -27,7 +27,7 @@ barchart_function <- function(
         ggplot(aes(word,n)) +
         geom_bar(stat = 'identity',aes(fill = n), fill = '#A2AAB0') +
         coord_flip() +
-        geom_text(aes(label = n), size = 3, hjust = 1.4, color = 'black') +
+        geom_text(aes(label = n), size = 3, hjust = 1.2, color = 'black') +
         facet_wrap(~question,scales = "free") +
         scale_x_reordered() +
         labs(
