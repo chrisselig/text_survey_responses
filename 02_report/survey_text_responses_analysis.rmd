@@ -174,14 +174,21 @@ Bigrams are a little more interesting than unigrams because you can start to see
 4. "Floor plan(s)" appears twice in the "change 1 thing" question
 
 
-## Word Correlations
-
-
 ## Sentence Sentiment
 
 Lookng at the sentiment of individual words is a bit too primitive and the English language is syntactically complex and lexically rich so now I will take a look at the sentiment of full responses. 
 
-The algorithm I will use is a bit better than sentiment by word. It uses "valence shifters" that help adjust the sentiment score. For example, if you do sentiment analysis on the single word "happy", the score is positive. Obviously though, if the phrase is "not happy" it is no longer positive but a single word sentiment analysis would not pick that up. The valence shifters will help adjust "not happy" to negative or at least less positive. Also, the sentiment score that will be returned will be an aggregate of each sentence for each question and response. tTat way we only look at a single score per question and response. A score greater than 0 implies an overall positive sentiment.
+The algorithm I will use is a bit better than sentiment by word. It uses "valence shifters" that help adjust the sentiment score. For example, if you do sentiment analysis on the single word "happy", the score is positive. Obviously though, if the phrase is "not happy" it is no longer positive but a single word sentiment analysis would not pick that up. The valence shifters will help adjust "not happy" to negative or at least less positive. Also, the sentiment score that will be returned will be an aggregate of each sentence for each question and response. That way we only look at a single score per question and response. A score greater than 0 implies an overall positive sentiment.
+
+A note on sentiment, it is not a perfect process. Words are normally crowdsourced to see if they are positive or negative, so the context a word is used may not be included. A good example is the word "plot". A movie plot is a positive word, but a plot to do a bad deed is negative.
+
+A more specific example for this dataset is this response:
+
+"$150 for 20 photos is a lot of money when we can get cheaper pricing in our area."
+
+This is scored as 0.4 which is a positive score but it isn't a positive response by the recipient.
+
+In the table below you can search both by score and whether the sentiment is positive or negative.
 
 ```{r calcSentiment}
 sentence_sentiment <- raw_data %>% 
@@ -203,9 +210,19 @@ sentence_sentiment <- raw_data %>%
     ungroup() %>%
     get_sentences() %>%
     sentiment_by(by = c('question', 'sentence')) %>% 
-    filter(ave_sentiment != 0.0)
+    filter(ave_sentiment != 0.0) %>% 
+    select(-c(sd,word_count)) %>% 
+    rename(`Avg Sentiment` = ave_sentiment) %>% 
+    mutate(`Avg Sentiment` = round(`Avg Sentiment`,2)) %>% 
+    mutate(Sentiment = ifelse(`Avg Sentiment` > 0, 'positive','negative'))
 
 ```
+
+```{r visualizeSentenceSentiment}
+sentence_sentiment %>% 
+    datatable(options = list(pageLength = 10))
+```
+
 
 ## Keyword Search
 
@@ -227,5 +244,7 @@ raw_data %>%
     
 ```
 
+
+## Word Correlations
 
 ## Topic Modeling
