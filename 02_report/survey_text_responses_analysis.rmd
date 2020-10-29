@@ -1,19 +1,25 @@
 ---
 title: "Survey Text Analysis"
 author: "Chris Selig"
-date: "10/22/2020"
-output: html_document
+date: "`r Sys.Date()`"
+output: 
+    tufte::tufte_html: default
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
     echo = F,
     warning = F,
-    message = F
+    message = F,
+    fig.align = 'center'
     )
 ```
 
 ```{r load libraries}
+# rmd theme
+library(tufte)
+
 # Workhorse: data manipulation, plotting
 library(tidyverse)
 library(janitor)
@@ -27,6 +33,7 @@ library(stopwords)
 
 # Visualization packages
 library(ggthemes)
+library(wordcloud)
 ```
 
 
@@ -68,47 +75,38 @@ The four questions are:
 4. Additional Comments and/or Suggestions for improvements or changes. Tagged as "Other Comments" in dataset.
 
 
+## Most Common Words Overall
 
-## Visualize Most Common Single Words
+First, I look at the most common words overall. Note, stop words are removed. Stop words are extremely common words like "and", "a", and "the" and offer no meaning for analytical purposes.
+
+```{r}
+set.seed(100)
+
+unigram_tidy_data %>% 
+    count(word) %>% 
+    with(wordcloud(word, n, max.words = 100))
+```
+
+
+The wordcloud above shows the top 100 words used by the respondents. Photographer is the most frequent word, which really isn't a big surprise, but some other interesting ones are 'service', 'time','pricing' and 'quicker'.
+
+
+## Visualize Most Common Single Words by Question
 
 
 The below image shows the single most frequent words that appear on each of the four open ended questions.
 
-```{r unigram visual}
-# unigram_tidy_data %>% 
-#     count(question, word) %>%
-#     group_by(question) %>%
-#     arrange(desc(n)) %>%
-#     top_n(10) %>% 
-#     ungroup() %>% 
-#     mutate(
-#         question = as.factor(question),
-#         word = reorder_within(word, n, question)
-#     ) %>% 
-#     mutate(
-#         question = str_replace(question, "open_",""),
-#         question = str_replace_all(question, "_"," "),
-#         question = str_to_title(question)
-#     ) %>% 
-#     ggplot(aes(word,n)) +
-#     geom_bar(stat = 'identity',aes(fill = n), fill = '#A2AAB0') +
-#     coord_flip() +
-#     geom_text(aes(label = n), size = 3, hjust = 1.4, color = 'black') +
-#     facet_wrap(~question,scales = "free") +
-#     scale_x_reordered() +
-#     labs(
-#         x = '',
-#         y = '',
-#         title = "Top 10 Single Words for Each Open Question"
-#     ) +
-#     theme(
-#         plot.title = element_text(size = 14, family = "memphis",color = '#4C586F', face = 'bold'),
-#         plot.subtitle = element_text(hjust = 0.01, size = 11,family = "ArnoProLightDisplay"),
-#         axis.text.x=element_blank(),
-#         axis.ticks.x=element_blank(),
-#         legend.position = "none"
-#     )
 
+Some observations:
+
+1. Pricing seems to be pretty popular in the "change 1 thing" question as it appears twice, as price and pricing.
+
+2. Photos appears the most times in both the "change 1 thing" and "do better" questions. That would be something else to explore. 
+
+3. The "other services" questions has some interesting words, like video and drone. Both are services offered so it would be interesting to see the context.
+
+
+```{r unigram visual}
 barchart_function(
     data = unigram_tidy_data, 
     title = "Top 10 Single Words for Each Open Question"
@@ -118,9 +116,44 @@ barchart_function(
 
 ## Common Bigrams - Two words that appear side by side
 
-The next section will show words that often appear together. Note, stop words are removed. Stop words are extremely common words like "and", "a", and "the" and offer no meaning for analysis purposes.
+The next section will show two words that often appear together. Note, bigrams appear less frequently than single words so counts will be lower.
 
-```{r bigram visual}
 
+```{r bigrams data processing}
+bigram_tidy_data <- raw_data %>% 
+    clean_column_names_function() %>% 
+    ngram_data_function()
 ```
 
+```{r bigram visual}
+bigram_tidy_data %>% 
+    barchart_function(
+        title = "Top 10 Bigrams by Question",
+        subtitle = "More than 10 bigrams appear due to ties"
+    )
+```
+
+Bigrams are a little more interesting than unigrams because you can start to see some context around the verbage in the questions.
+
+1. Virtual staging appers most frequently in the "change 1 thing" and other services questions, while it is second place in the "do better" and "other comments" questions.
+
+2. "Gold package" makes the top 10 in the "do better" question.
+
+3. "Customer service" is number 1 in "do better"
+
+4. "Floor plan(s)" appears twice in the "change 1 thing" question
+
+
+## Common Trigrams - Three words that appear side by side
+
+
+## Topic Modeling
+
+
+## Single Word Sentiment Wordcloud
+
+
+## Sentence Sentiment
+
+
+## Keyword Search

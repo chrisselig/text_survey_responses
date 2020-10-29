@@ -7,6 +7,7 @@
 barchart_function <- function(
     data = unigram_tidy_data,
     title = NA_character_,
+    subtitle = NA_character_,
     number_of_rows = 10
                               ){
     data %>% 
@@ -33,7 +34,8 @@ barchart_function <- function(
         labs(
             x = '',
             y = '',
-            title = title
+            title = title,
+            subtitle = subtitle
         ) +
         theme(
             plot.title = element_text(size = 14, family = "memphis",color = '#4C586F', face = 'bold'),
