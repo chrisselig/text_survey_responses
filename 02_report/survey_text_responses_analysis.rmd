@@ -1,6 +1,5 @@
 ---
 title: "Survey Text Analysis"
-author: "Chris Selig"
 date: "`r Sys.Date()`"
 output: 
     tufte::tufte_html: default
@@ -344,6 +343,18 @@ Some insights on change 1 thing:
 
 ### What Could Be Done Better Question
 
+Below is the topics created for the "what could we do better question?"
+
+Some insights:
+
+1. Topic 1: 'Drone' appears at the top of the list and near the top in topic 3. Topic 1 though seems to show that people are not happy with the drone service because of prices/time/difficult but also shows customer service as being a popular topic.
+
+2. Topic 5 and to a lesser extent 4, seems to show that quality of photos and photographers is a popular topic. This makes some sense because there were comments on how good the photo service is.
+
+3. Pricing seems to be popular amongst the topics
+
+4. I was curious to see if the gold or silver packages would be a popular topic. Only topic 9 references "package" but I don't know if that references them or not. So, it could be good that the gold and silver packages do not appear in any of the topics.
+
 ```{r ldadobetter}
 tdm_function(unigram_tidy_data, 'open_do_better') %>% 
   lda_model_function(k = 10,n = 10) %>% 
@@ -356,6 +367,16 @@ tdm_function(unigram_tidy_data, 'open_do_better') %>%
 
 ### Other Services Question
 
+Some insights on the other services question:
+
+1. Topic 1 appears to just list all the services currently offered already
+
+2. Video appears in all of the topics. I would be interested in reading the comments to see what part of video services people are requesting
+
+3. Topic 3 and 9 has a high probability of the word 'moment' appearing. I would also like to see what that is referring to.
+
+4. Topic 8 has a high probability of having 'ability' appear related to virtual staging. That would also be interesting to explore further.
+
 ```{r ldaotherservices}
 tdm_function(unigram_tidy_data, 'open_other_services') %>% 
   lda_model_function(k = 10,n = 10) %>% 
@@ -366,6 +387,20 @@ tdm_function(unigram_tidy_data, 'open_other_services') %>%
 ```
 
 ### Other Comments
+
+
+Insights from the 'other comments' question:
+
+1. Topic 10 refers to pricing, drones and packages which were common words that from previous analysis sections so it appears pricing definitely a popular topic.
+
+2. Topic 2 talks about VHT, service and professionalism. This looks like a positive topic.
+
+3. Topic 3 also seems like a positive topic since it references love and VHT. 
+
+4. Topic 4 seems like it is a positive topic for the pictures/photographers as well
+
+5. The word 'love' appears in many of the topics, which could imply that overall, people are happy with the services.
+
 
 ```{r ldaothercomments}
 tdm_function(unigram_tidy_data, 'open_other_comments') %>% 
