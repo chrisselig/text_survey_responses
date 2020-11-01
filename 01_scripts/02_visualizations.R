@@ -48,6 +48,32 @@ barchart_function <- function(
 }
 
 
+# LDA Probability Visualization ----
+
+lda_bar_function <- function(data, title, subtitle){
+    
+    data %>%
+        mutate(term = reorder_within(term, beta, topic)) %>%
+        ggplot(aes(term, beta),fill = '#A2AAB0') +
+        geom_col(show.legend = FALSE) +
+        facet_wrap(~topic, scales = "free") +
+        coord_flip() +
+        scale_x_reordered() +
+        labs(
+            title = title,
+            subtitle = subtitle
+        ) +
+        theme(
+            plot.title = element_text(size = 14, family = "memphis",color = '#4C586F', face = 'bold'),
+            plot.subtitle = element_text(hjust = 0.01, size = 11,family = "ArnoProLightDisplay"),
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            legend.position = "none"
+        )
+}
+
 # Test function ----
 # title = ""
 # barchart_function()
+
+# lda_bar_function(title = 'Top 10 Words by Topic',subtitle = 'Shows top 10 by probability of each word appearing with the other words')
