@@ -76,7 +76,17 @@ remove_stop_words_function <- function(data = tokenized_data){
     
 }
 
+# Create term document matrix ----
 
+tdm_function <- function(data, search_text){
+    
+    data %>% 
+        select(-respondent_id) %>% 
+        filter(question == !!search_text) %>% 
+        count(question, word) %>%
+        cast_tdm(question, word, n)
+    
+}
 
 # Test functions ----
 # data <- raw_data %>%
@@ -92,3 +102,6 @@ remove_stop_words_function <- function(data = tokenized_data){
 # ngram_data_function()
 # 
 # ngram_data_function()
+
+# tdm_function(unigram_tidy_data, 'open_change_1_thing')
+
