@@ -24,6 +24,7 @@ library(tufte)
 library(tidyverse)
 library(janitor)
 library(reshape2)
+library(widyr)
 
 # Read in data
 library(readxl)
@@ -33,11 +34,13 @@ library(tidytext)
 library(textdata)
 library(stopwords)
 library(sentimentr)
+library(topicmodels)
 
 # Visualization packages
 library(ggthemes)
 library(wordcloud)
 library(DT)
+library(ggraph)
 ```
 
 
@@ -62,6 +65,8 @@ theme_set(theme_tufte())
 windowsFonts(memphis=windowsFont("memphis"))
 windowsFonts(ArnoProLightDisplay = windowsFont("Arno Pro Light Display"))
 ```
+
+
 
 
 ```{r unigrams data processing}
@@ -114,7 +119,8 @@ unigram_tidy_data %>%
     acast(word ~ sentiment, value.var = "n", fill = 0) %>%
     comparison.cloud(
     colors = c("#CD5C5C", "darkgreen"),
-    title.bg.colors = NA,
+    title.bg.colors = 'grey88',
+    title.colors = c("#CD5C5C", "darkgreen"),
     max.words = 150
   )
 ```
@@ -174,6 +180,8 @@ Bigrams are a little more interesting than unigrams because you can start to see
 4. "Floor plan(s)" appears twice in the "change 1 thing" question
 
 
+
+
 ## Sentence Sentiment
 
 Lookng at the sentiment of individual words is a bit too primitive and the English language is syntactically complex and lexically rich so now I will take a look at the sentiment of full responses. 
@@ -220,8 +228,18 @@ sentence_sentiment <- raw_data %>%
 
 ```{r visualizeSentenceSentiment}
 sentence_sentiment %>% 
-    datatable(options = list(pageLength = 10))
+    datatable(options = list(pageLength = 10,
+                             searchHighlight = TRUE,
+                             filter = 'top',
+                             initComplete = JS(
+    "function(settings, json) {",
+    "$(this.api().table().header()).css({'background-color': '#494F5C', 'color': '#fff'});",
+    "}")),
+                            class = 'cell-border stripe',
+              caption = 'Table 1: Search by Sentiment Score.'
+              )
 ```
+
 
 
 ## Keyword Search
@@ -240,11 +258,93 @@ raw_data %>%
     filter(!is.na(text)) %>% 
     clean_question_column_function() %>% 
     select(-respondent_id) %>% 
-    datatable(options = list(pageLength = 10))
+    datatable(options = list(pageLength = 10,
+                             searchHighlight = TRUE,
+                             filter = 'top',
+                             initComplete = JS(
+    "function(settings, json) {",
+    "$(this.api().table().header()).css({'background-color': '#494F5C', 'color': '#fff'});",
+    "}")),
+                            class = 'cell-border stripe',
+              caption = 'Table 2: Search for specific keywords in responces.'
+              )
     
 ```
 
 
+
+
+
+
+```{r}
 ## Word Correlations
 
+# Tokenizing by ngram is a useful way to explore pairs of adjacent words. However, we may also be interested in words that tend to co-occur within particular questions or sentences, even if they don’t occur next to each other.
+# 
+# Counting and correlating among questions.
+# 
+# We may instead want to examine correlation among words, which indicates how often they appear together relative to how often they appear separately.
+# 
+# set.seed(2016)
+# 
+# word_cors <- unigram_tidy_data %>% 
+#     select(-respondent_id) %>% 
+#     group_by(word) %>%
+#     filter(n() >= 20) %>%
+#     widyr::pairwise_cor(word, question, sort = TRUE)
+# 
+# word_cors %>%
+#   filter(correlation > .25) %>%
+#   igraph::graph_from_data_frame() %>%
+#   ggraph(layout = "fr") +
+#   geom_edge_link(aes(edge_alpha = correlation), show.legend = FALSE) +
+#   geom_node_point(color = "lightblue", size = 5) +
+#   geom_node_text(aes(label = name), repel = TRUE) +
+#   theme_void()
+
+```
+
+
 ## Topic Modeling
+
+The last section uses an algorithm to try to pick out common topics within each question. A popular machine learning logarithim will be used to try to discover themes within the four questions.
+
+Latent Dirichlet allocation (LDA) is a particularly popular method for fitting a topic model. It treats each document as a mixture of topics, and each topic as a mixture of words. This allows documents to “overlap” each other in terms of content, rather than being separated into discrete groups, in a way that mirrors typical use of natural language.
+
+```{r create tdm question1}
+change1_tdm <- unigram_tidy_data %>% 
+  select(-respondent_id) %>% 
+  filter(question == 'open_change_1_thing') %>% 
+   count(question, word) %>%
+    cast_tdm(question, word, n)
+```
+
+
+
+
+
+```{r}
+change1_lda <- LDA(change1_tdm, k = 10, control = list(seed = 1234))
+```
+
+```{r}
+change1_lda_topics <- tidy(change1_lda, matrix = "beta")
+```
+
+```{r}
+change1_top_terms <- change1_lda_topics %>%
+  group_by(topic) %>%
+  top_n(10, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+
+change1_top_terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(term, beta, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~topic, scales = "free") +
+  coord_flip() +
+  scale_x_reordered()
+```
+
+
