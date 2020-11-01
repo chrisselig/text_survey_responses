@@ -52,6 +52,7 @@ keyword <- read_excel("../00_data/keywords.xlsx")
 ```{r source scripts}
 source("../01_scripts/01_data_processing.R")
 source("../01_scripts/02_visualizations.R")
+source("../01_scripts/03_modeling.R")
 ```
 
 ```{r set theme for plots}
@@ -307,44 +308,70 @@ raw_data %>%
 
 ## Topic Modeling
 
-The last section uses an algorithm to try to pick out common topics within each question. A popular machine learning logarithim will be used to try to discover themes within the four questions.
+The last section uses an algorithm to try to pick out common topics within each question. A popular machine learning logarithim will be used to try to discover themes within each of the four questions.
 
-Latent Dirichlet allocation (LDA) is a particularly popular method for fitting a topic model. It treats each document as a mixture of topics, and each topic as a mixture of words. This allows documents to “overlap” each other in terms of content, rather than being separated into discrete groups, in a way that mirrors typical use of natural language.
+Latent Dirichlet allocation (LDA) is a popular method for fitting a topic model. It treats each question as a mix of topics, and each topic as a mixture of words. This allows documents to “overlap” each other in terms of content, rather than being separated into discrete groups, in a way that mirrors typical use of natural language.
+
+So, the algorithm groups words, based on probability of words appearing in each of the topic or themes.
+
+### Change 1 Thing Question
+
 
 ```{r create tdm question1}
-change1_tdm <- unigram_tidy_data %>% 
-  select(-respondent_id) %>% 
-  filter(question == 'open_change_1_thing') %>% 
-   count(question, word) %>%
-    cast_tdm(question, word, n)
+tdm_function(unigram_tidy_data, 'open_change_1_thing') %>% 
+  lda_model_function(k = 10,n = 10) %>% 
+  lda_bar_function(
+    title = 'Top 10 Words by Topic: Change One Thing',
+    subtitle = 'Shows top 10 by probability of each word appearing within that topic'
+  )
 ```
 
 
+The beta on the x-axis is the probability of the word appearing on the y-axis
+
+Some insights on change 1 thing:
+
+1. Photos/photographers appear everything, which makes sense based on the business that the responses are for
+
+2. Pricing/price appears to appear in all 10 topics, which also makes sense because it was a very common word.
+
+3. Topics 7 and 9, in particular seem to be related to the expense of drones (topic 7) and virtual staging (topic 9)
+
+4. Topic 5 seems to be related to service and time, which seems like it could be response time.
+
+5. Topic 8 is very focused on price, but also scheduling.
 
 
+### What Could Be Done Better Question
 
-```{r}
-change1_lda <- LDA(change1_tdm, k = 10, control = list(seed = 1234))
+```{r ldadobetter}
+tdm_function(unigram_tidy_data, 'open_do_better') %>% 
+  lda_model_function(k = 10,n = 10) %>% 
+  lda_bar_function(
+    title = 'Top 10 Words by Topic: What can we do better?',
+    subtitle = 'Shows top 10 by probability of each word appearing within that topic'
+  )
 ```
 
-```{r}
-change1_lda_topics <- tidy(change1_lda, matrix = "beta")
+
+### Other Services Question
+
+```{r ldaotherservices}
+tdm_function(unigram_tidy_data, 'open_other_services') %>% 
+  lda_model_function(k = 10,n = 10) %>% 
+  lda_bar_function(
+    title = 'Top 10 Words by Topic: Other services?',
+    subtitle = 'Shows top 10 by probability of each word appearing within that topic'
+  )
 ```
 
-```{r}
-change1_top_terms <- change1_lda_topics %>%
-  group_by(topic) %>%
-  top_n(10, beta) %>%
-  ungroup() %>%
-  arrange(topic, -beta)
+### Other Comments
 
-change1_top_terms %>%
-  mutate(term = reorder_within(term, beta, topic)) %>%
-  ggplot(aes(term, beta, fill = factor(topic))) +
-  geom_col(show.legend = FALSE) +
-  facet_wrap(~topic, scales = "free") +
-  coord_flip() +
-  scale_x_reordered()
+```{r ldaothercomments}
+tdm_function(unigram_tidy_data, 'open_other_comments') %>% 
+  lda_model_function(k = 10,n = 10) %>% 
+  lda_bar_function(
+    title = 'Top 10 Words by Topic: Other comments',
+    subtitle = 'Shows top 10 by probability of each word appearing within that topic'
+  )
 ```
-
-
